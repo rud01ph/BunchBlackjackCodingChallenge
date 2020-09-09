@@ -28,6 +28,11 @@ namespace Blackjack.Users
     public class UserController : MonoBehaviour
     {
         protected UserInfo userInfo;
+
+        public void SetUserInfo(UserInfo info)
+        {
+            this.userInfo = info;
+        }
         protected DeckController _deckController = null;
 
         protected bool isBlackJack;

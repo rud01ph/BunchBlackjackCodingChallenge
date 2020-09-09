@@ -71,11 +71,21 @@ public class BlackjackGameManager : MonoBehaviour
 
     public void StartGame()
     {
+        //when the cards remain less than 20, it start shuffle again.
         if (_deck.GetTotalCards() <= 20)
         {
             ShuffleDeck();
         }
-        Deal();
+
+        //if the player batting is less than 0, you cannot start the game 
+        if (_player.GetBattingFee() > 0)
+        {
+            Deal();
+        }
+        else
+        {
+            Debug.Log("Please, batting money");
+        }
 
     }
 
@@ -92,7 +102,7 @@ public class BlackjackGameManager : MonoBehaviour
             //when player get over 21, player always lost the game.
             if (_player.GetFaceUpCardValue() > 21)
             {
-                _gameUIManager.SetTheResultText(EvaluateCards());
+                ShowResult();
             }
         }
         else
@@ -122,9 +132,8 @@ public class BlackjackGameManager : MonoBehaviour
             yield return new WaitForSeconds(1f);
         }
 
-        _gameUIManager.SetTheResultText(EvaluateCards());
-
         yield return new WaitForSeconds(1f);
+        ShowResult();
     }
 
 
@@ -222,7 +231,21 @@ public class BlackjackGameManager : MonoBehaviour
             _player.AddBalance(_player.GetBattingFee());
         }
 
+        _player.ClearHand();
+        _dealer.ClearHand();
         _gameUIManager.SetTheResultText(result);
+    }
+
+    public void SaveData()
+    {
+        SaveAndLoad.SavePlayerInfo(_dealer.GetUserID(), _dealer.GetBalance());
+        SaveAndLoad.SavePlayerInfo(_player.GetUserID(), _player.GetBalance() + _player.GetBattingFee());
+    }
+    public void LoadData()
+    {
+        _dealer.SetUserInfo(SaveAndLoad.LoadPlayerInfo(_dealer.GetUserID()));
+        _player.SetUserInfo(SaveAndLoad.LoadPlayerInfo(_player.GetUserID()));
+        _gameUIManager.SetBalanceText(_player.GetBalance());
     }
 
 }
