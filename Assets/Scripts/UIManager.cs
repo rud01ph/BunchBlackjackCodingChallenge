@@ -7,15 +7,13 @@ public class UIManager : MonoBehaviour
 {
     [SerializeField] private BlackjackGameManager _gameManager = null;
     [SerializeField] private GameObject _gameStartView = null;
-    [SerializeField] private GameObject _dealButton = null;
     [SerializeField] private GameObject _GamePlayActionButtons = null;
-    [SerializeField] private Button _settingButton = null;
     [SerializeField] private TextMeshProUGUI _dealerHandCardValue = null;
     [SerializeField] private TextMeshProUGUI _playerHandCardValue = null;
     [SerializeField] private GameObject _resultPanel = null;
     [SerializeField] private TextMeshProUGUI _resultText = null;
-    [SerializeField] private TextMeshProUGUI battingAmount = null;
-    [SerializeField] private TextMeshProUGUI currentUserBalance = null;
+    [SerializeField] private TextMeshProUGUI _battingAmount = null;
+    [SerializeField] private TextMeshProUGUI _currentUserBalance = null;
 
     public void SetPlayerHandCardValue(int value)
     {
@@ -29,18 +27,27 @@ public class UIManager : MonoBehaviour
 
     public void SetTotalBattingChipText(double batAmount)
     {
-        battingAmount.text = string.Format("Batting : {0}", batAmount);
+        _battingAmount.text = string.Format("Batting : {0}", batAmount);
     }
 
     public void SetBalanceText(double balance)
     {
-        currentUserBalance.text = string.Format("Balance : {0}", balance);
+        _currentUserBalance.text = string.Format("Balance : {0}", balance);
+    }
+    public void OnClickedSaveButton()
+    {
+        _gameManager.SaveData();
     }
 
+    public void OnClickedLoadButton()
+    {
+        _gameManager.LoadData();
+    }
     public void OnClickedBattingButton(int batting)
     {
         _gameManager.BattingChip((double)batting);
     }
+
 
     public void OnClickedDoubleDownButton()
     {
@@ -84,6 +91,10 @@ public class UIManager : MonoBehaviour
         GameOver();
     }
 
+    public void OnClickedSurrenderButton()
+    {
+        _gameManager.Surrender();
+    }
     public void OnClickDealButton()
     {
         _gameManager.StartGame();
