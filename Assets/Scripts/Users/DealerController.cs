@@ -9,6 +9,9 @@ namespace Blackjack.Users
         void Awake()
         {
             _deckController = GetComponent<DeckController>();
+            userInfo = new UserInfo();
+            userInfo.id = "Dealer";
+            userInfo.balance = 100000;
         }
     }
 }

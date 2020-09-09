@@ -12,6 +12,9 @@ public class BlackjackGameManager : MonoBehaviour
     [SerializeField] UIManager _gameUIManager = null;
 
     [SerializeField] private int maxDeck = 8;
+
+
+    ESideGameState _sideGameState = ESideGameState.NONE;
     public int MaxDeck
     {
         get
@@ -24,14 +27,22 @@ public class BlackjackGameManager : MonoBehaviour
         }
     }
 
-    // Deal 
-    public void StartGame()
+    //Do shuffle when it's has 20 cards left/
+    public void ShuffleDeck()
     {
-        _gameUIManager.StartGame();
-
         _deck.CreateDeck(maxDeck);
         _deck.Shuffle();
-        _deck.ShowCards(true);
+        _deck.ShowCards(false);
+
+    }
+
+    // Deal 
+    public void Deal()
+    {
+        _sideGameState = ESideGameState.NONE;
+        _gameUIManager.StartGame();
+        _gameUIManager.SetTotalBattingChipText(_player.GetBattingFee());
+        _gameUIManager.SetBalanceText(_player.GetBalance());
 
         _player.ClearHand();
         _dealer.ClearHand();
@@ -48,8 +59,24 @@ public class BlackjackGameManager : MonoBehaviour
         //if the dealer's hand is not blackjack, it does not reveal. 
         _dealer.ShowCardFace(1, (_dealer.GetTotalHandCardValue() == 21));
 
+        //check player is black jack or not
+        if (_player.GetTotalHandCardValue() == 21)
+        {
+            _player.IsBlackJack = true;
+        }
+
         _gameUIManager.SetPlayerHandCardValue(_player.GetFaceUpCardValue());
         _gameUIManager.SetDealerHandCardValue(_dealer.GetFaceUpCardValue());
+    }
+
+    public void StartGame()
+    {
+        if (_deck.GetTotalCards() <= 20)
+        {
+            ShuffleDeck();
+        }
+        Deal();
+
     }
 
     public void Hit(bool isPlayer)
@@ -67,7 +94,6 @@ public class BlackjackGameManager : MonoBehaviour
             {
                 _gameUIManager.SetTheResultText(EvaluateCards());
             }
-
         }
         else
         {
@@ -76,10 +102,7 @@ public class BlackjackGameManager : MonoBehaviour
             _dealer.Flip(_dealer.GetTotalCards() - 1);
             _gameUIManager.SetDealerHandCardValue(_dealer.GetFaceUpCardValue());
         }
-
     }
-
-
 
     public void UserStand()
     {
@@ -103,47 +126,103 @@ public class BlackjackGameManager : MonoBehaviour
 
         yield return new WaitForSeconds(1f);
     }
+
+
+    public void BattingChip(double value)
+    {
+        CanBatting(value);
+    }
+
     //if the two cards have the same value, separate them to make two hands
     public void DoubleDown()
     {
-        Hit(true);
-        UserStand();
+        _sideGameState = ESideGameState.DOUBLE;
+
+        if (CanBatting(_player.GetBattingFee()))
+        {
+            Hit(true);
+            UserStand();
+        }
+    }
+
+    private bool CanBatting(double value)
+    {
+        if (!_player.SetBatting(value))
+        {
+            Debug.Log("The money is no enough");
+            return false;
+        }
+        _gameUIManager.SetTotalBattingChipText(_player.GetBattingFee());
+        _gameUIManager.SetBalanceText(_player.GetBalance());
+        return true;
     }
 
     //give up a half-bet and retire from the game
     public void Surrender()
     {
-
-    }
-
-    //if the two cards have the same value, separate them to make two hands
-    public void Split()
-    {
-
+        _sideGameState = ESideGameState.SURRENDER;
+        UserStand();
     }
 
     private EGameState EvaluateCards()
     {
-        if (_player.GetFaceUpCardValue() <= 21)
+        int playerCardValue = _player.GetFaceUpCardValue();
+        int dealerCardValue = _dealer.GetFaceUpCardValue();
+
+        if (_sideGameState == ESideGameState.SURRENDER)
+            return EGameState.BUST;
+
+        if (playerCardValue <= 21)
         {
-            if (_dealer.GetFaceUpCardValue() > 21)
+            if (dealerCardValue > 21)
             {
                 return EGameState.WON;
             }
-            else if (_dealer.GetFaceUpCardValue() < _player.GetFaceUpCardValue())
+            else if (dealerCardValue < playerCardValue)
             {
                 return EGameState.WON;
             }
-            else if (_dealer.GetFaceUpCardValue() == _player.GetFaceUpCardValue())
+            else if (dealerCardValue == playerCardValue)
             {
                 return EGameState.PUSH;
             }
-            else if (_dealer.GetFaceUpCardValue() > _player.GetFaceUpCardValue())
+            else if (dealerCardValue > playerCardValue)
             {
                 return EGameState.BUST;
             }
         }
         return EGameState.BUST;
+
+    }
+
+    void ShowResult()
+    {
+        EGameState result = EvaluateCards();
+
+        if (result == EGameState.WON)
+        {
+            if (_player.IsBlackJack)
+            {
+                _player.AddBalance(_player.GetBattingFee() * 2.5);
+            }
+            else
+            {
+                _player.AddBalance(_player.GetBattingFee() * 2);
+            }
+        }
+        else if (result == EGameState.BUST)
+        {
+            if (_sideGameState == ESideGameState.SURRENDER)
+            {
+                _player.AddBalance(_player.GetBattingFee() * 0.5);
+            }
+        }
+        else
+        {
+            _player.AddBalance(_player.GetBattingFee());
+        }
+
+        _gameUIManager.SetTheResultText(result);
     }
 
 }

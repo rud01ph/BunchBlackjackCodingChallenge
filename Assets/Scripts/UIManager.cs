@@ -6,13 +6,16 @@ using TMPro;
 public class UIManager : MonoBehaviour
 {
     [SerializeField] private BlackjackGameManager _gameManager = null;
+    [SerializeField] private GameObject _gameStartView = null;
     [SerializeField] private GameObject _dealButton = null;
     [SerializeField] private GameObject _GamePlayActionButtons = null;
     [SerializeField] private Button _settingButton = null;
     [SerializeField] private TextMeshProUGUI _dealerHandCardValue = null;
     [SerializeField] private TextMeshProUGUI _playerHandCardValue = null;
+    [SerializeField] private GameObject _resultPanel = null;
     [SerializeField] private TextMeshProUGUI _resultText = null;
-
+    [SerializeField] private TextMeshProUGUI battingAmount = null;
+    [SerializeField] private TextMeshProUGUI currentUserBalance = null;
 
     public void SetPlayerHandCardValue(int value)
     {
@@ -22,6 +25,21 @@ public class UIManager : MonoBehaviour
     public void SetDealerHandCardValue(int value)
     {
         _dealerHandCardValue.text = string.Format("Dealer : {0}", value);
+    }
+
+    public void SetTotalBattingChipText(double batAmount)
+    {
+        battingAmount.text = string.Format("Batting : {0}", batAmount);
+    }
+
+    public void SetBalanceText(double balance)
+    {
+        currentUserBalance.text = string.Format("Balance : {0}", balance);
+    }
+
+    public void OnClickedBattingButton(int batting)
+    {
+        _gameManager.BattingChip((double)batting);
     }
 
     public void OnClickedDoubleDownButton()
@@ -62,7 +80,7 @@ public class UIManager : MonoBehaviour
                 break;
         }
         _resultText.text = text;
-        _resultText.gameObject.SetActive(true);
+        _resultPanel.gameObject.SetActive(true);
         GameOver();
     }
 
@@ -73,15 +91,15 @@ public class UIManager : MonoBehaviour
 
     public void StartGame()
     {
-        _dealButton.gameObject.SetActive(false);
-        _resultText.gameObject.SetActive(false);
+        _gameStartView.gameObject.SetActive(false);
+        _resultPanel.gameObject.SetActive(false);
         _GamePlayActionButtons.SetActive(true);
     }
 
     private void GameOver()
     {
-        _dealButton.gameObject.SetActive(true);
-        _resultText.gameObject.SetActive(true);
+        _gameStartView.gameObject.SetActive(true);
+        _resultPanel.gameObject.SetActive(true);
         _GamePlayActionButtons.SetActive(false);
     }
 
